@@ -4,16 +4,16 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Year;
 
 public class Servidor {
     public static void main(String[] args) throws IOException {
-        // Levanta el servidor en el puerto 8080
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
 
-        // Escucha las peticiones que lleguen a /procesar
         server.createContext("/procesar", exchange -> {
-            String query = exchange.getRequestURI().getQuery(); // Ej: "nombre=Ana&edad=20"
+            String query = exchange.getRequestURI().getQuery();
             String nombre = "Sin nombre";
+            String correo = "Sin correo";
             int edad = 0;
 
             if (query != null) {
@@ -24,18 +24,21 @@ public class Servidor {
                         String valor = URLDecoder.decode(par[1], StandardCharsets.UTF_8);
                         if (clave.equals("nombre")) nombre = valor;
                         if (clave.equals("edad")) edad = Integer.parseInt(valor);
+                        if (clave.equals("correo")) correo = valor;
                     }
                 }
             }
 
-            // Procesamiento de la información
             String nombreMayus = nombre.toUpperCase();
-            String mensajeEdad = (edad >= 18) ? "eres mayor de edad" : "eres menor de edad";
+            String estadoEdad = (edad >= 18) ? "Mayor de edad" : "Menor de edad";
+            int anioNacimiento = Year.now().getValue() - edad;
 
-            String respuestaHtml = "<html><body style='font-family: sans-serif;'>"
-                    + "<h2>Respuesta procesada por Java</h2>"
-                    + "<p>Hola <b>" + nombreMayus + "</b>, tienes " + edad + " años (" + mensajeEdad + ").</p>"
-                    + "<a href='javascript:history.back()'>Volver al formulario</a>"
+            String respuestaHtml = "<html><body style='font-family: Arial, sans-serif; padding: 30px;'>"
+                    + "<h2>Datos procesados por el Servidor Java</h2>"
+                    + "<p><b>Usuario:</b> " + nombreMayus + "</p>"
+                    + "<p><b>Edad:</b> " + edad + " años (" + estadoEdad + " - nacido aprox. en " + anioNacimiento + ")</p>"
+                    + "<p><b>Correo registrado:</b> " + correo + "</p>"
+                    + "<br><a href='javascript:history.back()'>Volver al formulario</a>"
                     + "</body></html>";
 
             byte[] bytes = respuestaHtml.getBytes(StandardCharsets.UTF_8);
